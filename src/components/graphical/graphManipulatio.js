@@ -1,8 +1,8 @@
 import { fabric } from 'fabric';
-import { NonDirectionalGraph, BaseNode } from '../simple_graphs'
+import { Graph, BaseNode } from '../simple_graphs'
 import { Node } from './nodes';
 import { State } from './utils/StateMachine'
-let graph = new NonDirectionalGraph();
+let graph = new Graph();
 let nodeCount = 0;
 let canvas;
 let selected;
@@ -119,9 +119,14 @@ states["objectSelectedNode"].on(["down:node"], ({ target }) => {
         if (graph.connections[tId] && sId in graph.connections[tId]) {
             deleteLine();
             canvas.remove(graph.connections[tId][sId].data.line);
-            graph.disconnect(sId, tId);
+            graph.disconnect(tId, sId);
             return states["objectNotSelected"];
         }
+        if (graph.inboundConnections[tId] && sId in graph.inboundConnections[tId]) {
+            deleteLine();
+            return states["objectNotSelected"];
+        }
+
         line.end = target.node.identifier
 
         line.set({ x2: x, y2: y }).setCoords();
@@ -165,10 +170,10 @@ states["objectDragging"].on(["move:node"], ({ target, pointer }) => {
         target._updateTokens();
     }
     canvas.sendToBack(target);
-    if (!graph.connections[identifier]) return;
+    if (!graph.connections[identifier] && !graph.inboundConnections[identifier]) return;
 
     const [x, y] = adjastMousePointer(pointer);
-    Object.entries(graph.connections[identifier]).forEach(([_, connection]) => {
+    Object.entries({...graph.connections[identifier], ...graph.inboundConnections[identifier] }).forEach(([_, connection]) => {
         const { line } = connection.data;
         line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
         canvas.sendToBack(line)
@@ -180,7 +185,7 @@ states["objectDragging"].on(["up"], () => {
     const { identifier } = selected.node;
     const [x, y] = [...getCentre(selected)]
     if (!graph.connections[identifier]) return states["objectNotSelected"];
-    Object.entries(graph.connections[identifier]).forEach(([_, connection]) => {
+    Object.entries({...graph.connections[identifier], ...graph.inboundConnections[identifier] }).forEach(([_, connection]) => {
         const { line } = connection.data;
         line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
         canvas.sendToBack(line)
