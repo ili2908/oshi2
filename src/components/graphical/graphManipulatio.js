@@ -15,7 +15,7 @@ const createNode=(x,y)=>{
         new fabric.Rect({
             width: 40, height: 40, fill: 'red', top:y-20, left:x-20,
             hasBorders:false,
-            hasas:false,
+            hasControls:false
         }):
         new Node(x,y,graph,canvas);
     gn.isRect = keyPressed.includes("a");
@@ -25,9 +25,9 @@ const createNode=(x,y)=>{
     return gn;
 }
 
-const createLine=([x1,y1,x2,y2])=>{
+const createLine=([x1,y1,x2,y2],color)=>{
     const line = new fabric.Line([x1,y1,x2,y2],{
-        stroke: 'red',
+        stroke: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
         hasBorders:false,
         hasas:false,
         evented:false,
@@ -73,7 +73,7 @@ states["objectNotSelected"].on(["down:nothing","down:node","down:selected"],({po
     
     selected = target;
     if(!selected)selected = createNode(Math.floor(pointer.x),Math.floor(pointer.y));
-    line = createLine([...getCentre(selected),Math.floor(pointer.x)-2,Math.floor(pointer.y)-2]);
+    line = createLine([...getCentre(selected),Math.floor(pointer.x)-2,Math.floor(pointer.y)-2],keyPressed.find(x=>x>='0'&& x<='9'));
     return states["objectSelectedNode"];
     
 });//======
@@ -92,11 +92,11 @@ states["objectSelectedNode"].on(["down:nothing"],({target,pointer})=>{
     
         canvas.renderAll();
         selected = newNode;
-        line=createLine([...getCentre(selected),Math.floor(pointer.x)-2,Math.floor(pointer.y)-2]);
+        line=createLine([...getCentre(selected),Math.floor(pointer.x)-2,Math.floor(pointer.y)-2],keyPressed.find(x=>x>='0'&& x<='9'));
     }
 });//======
 states["objectSelectedNode"].on(["down:node"],({target})=>{
-    if (selected.isRect && !keyPressed.includes("a") || !selected.isRect && keyPressed.includes("a")){
+    if (selected.isRect && !target.isRect  || !selected.isRect && target.isRect){
         const [x,y] = getCentre(target);
         const tId =  target.node.identifier;
         const sId = selected.node.identifier;
@@ -112,17 +112,17 @@ states["objectSelectedNode"].on(["down:node"],({target})=>{
         line.set({x2:x,y2:y}).setCoords();
 
         canvas.renderAll();
-        if (selected.isRect == target.isRect){
-            graph.connect(selected.node.identifier,target.node.identifier,{
-                line
-            });
-            }
+       
+        graph.connect(selected.node.identifier,target.node.identifier,{
+            line
+        });
+        
         return states["objectNotSelected"];
     }
 });//=======
 states["objectSelectedNode"].on(["key:pressed"],({key})=>{
     if(key == " "){
-        selected.addToken(keyPressed.find(x=>x>='0'&& x<='9'));
+        if(selected.addToken)selected.addToken(keyPressed.find(x=>x>='0'&& x<='9'));
     }
 });
 states["objectSelectedNode"].on(["down:selected"],()=>{
@@ -182,7 +182,8 @@ function initializeEvents(_canvas){
     canvas = _canvas;
     let currentState = states["objectNotSelected"];
 
-    canvas.on('mouse:down',({target,pointer})=>{ 
+    canvas.on('mouse:down',({target,pointer})=>{
+        if(target && !target.node)return; 
         currentState = currentState.pass(`down:${
             target===selected?
                 "selected":
@@ -197,6 +198,7 @@ function initializeEvents(_canvas){
     });
 
    canvas.on('object:moving',({target,pointer})=>{
+       if(target && !target.node)return;
      currentState =currentState.pass("move:node",{target,pointer})
    });
 
