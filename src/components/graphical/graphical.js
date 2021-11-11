@@ -3,17 +3,17 @@ import { fabric } from 'fabric';
 import graphManipulations from './graphManipulatio'
 
 export default function Graphical(){
-  const [canvas, setCanvas] = useState('');
   useEffect(() => {
     let newCanvas = initCanvas();
-    setCanvas(newCanvas);
     graphManipulations.initializeEvents(newCanvas);
   }, []);
   const initCanvas = () => (
     new fabric.Canvas('canvas', {
       height: 800,
-      width: 800,
-      backgroundColor: 'pink'
+      width: 1600,
+      backgroundColor: 'white',
+      selection:false,
+      preserveObjectStacking: true 
     })
   )
   return(

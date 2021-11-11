@@ -5,7 +5,9 @@ export class State{
             this.handlers[event] = handler;
         });
     }
-    pass(event,eventParams){
+    pass(event,eventParams)
+    {
+        console.log(event);
         if(!this.handlers[event])return this;
         return this.handlers[event](eventParams)||this;
     }
