@@ -65,7 +65,10 @@ const getCentre = (circle) => {
 
 }
 const deleteLine = () => {
-    if (line) canvas.remove(line).renderAll();
+    if (line) {
+        canvas.remove(line.triangle);
+        canvas.remove(line).renderAll();
+    }
     line = null;
 }
 const adjastMousePointer = (pointer) => {
@@ -106,14 +109,14 @@ states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
         line.set({ x2: x, y2: y }).setCoords();
         const x1 = line.x1;
         const y1 = line.y1;
-        console.log(x1, y1);
+        //console.log(x1, y1);
         const ang = Math.atan2((y - y1), (x - x1));
         line.triangle.set({
             left: x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)),
             top: y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)),
             angle: ang * 180 / Math.PI + 90
         }).setCoords();
-        console.log(line.triangle.top, line.triangle.left);
+        //console.log(line.triangle.top, line.triangle.left);
 
         graph.connect(selected.node.identifier, newNode.node.identifier, {
             line
@@ -133,6 +136,7 @@ states["objectSelectedNode"].on(["down:node"], ({ target }) => {
         if (graph.connections[tId] && sId in graph.connections[tId]) {
             deleteLine();
             canvas.remove(graph.connections[tId][sId].data.line);
+            canvas.remove(graph.connections[tId][sId].data.line.triangle);
             graph.disconnect(tId, sId);
             return states["objectNotSelected"];
         }
@@ -144,6 +148,16 @@ states["objectSelectedNode"].on(["down:node"], ({ target }) => {
         line.end = target.node.identifier
 
         line.set({ x2: x, y2: y }).setCoords();
+        const x1 = line.x1;
+        const y1 = line.y1;
+        //console.log(x1, y1);
+        const ang = Math.atan2((y - y1), (x - x1));
+        line.triangle.set({
+            left: x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)),
+            top: y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)),
+            angle: ang * 180 / Math.PI + 90
+        }).setCoords();
+        //console.log(line.triangle.top, line.triangle.left);
 
         canvas.renderAll();
 
@@ -196,7 +210,19 @@ states["objectDragging"].on(["move:node"], ({ target, pointer }) => {
     Object.entries({...graph.connections[identifier], ...graph.inboundConnections[identifier] }).forEach(([_, connection]) => {
         const { line } = connection.data;
         line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
-        canvas.sendToBack(line)
+        const x1 = line.end == identifier ? line.x1 : line.x2;
+        const y1 = line.end == identifier ? line.y1 : line.y2;
+        const ang = Math.atan2((y - y1), (x - x1));
+        console.log(x1, y1, ang);
+        line.triangle.set({
+            left: (line.end == identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) :
+                x1 - 5 * Math.sin(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang))),
+            top: (line.end == identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) :
+                y1 + 5 * Math.cos(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang))),
+            angle: line.end == identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
+        }).setCoords();
+        canvas.sendToBack(line);
+        canvas.sendToBack(line.triangle);
     });
 
     canvas.renderAll();
@@ -209,6 +235,18 @@ states["objectDragging"].on(["up"], () => {
         const { line } = connection.data;
         line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
         canvas.sendToBack(line)
+        line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
+        const x1 = line.end == identifier ? line.x1 : line.x2;
+        const y1 = line.end == identifier ? line.y1 : line.y2;
+        const x2 = line.triangle.left;
+        const y2 = line.triangle.top;
+        const ang = Math.atan2((y - y1), (x - x1));
+        line.triangle.set({
+            left: line.end == identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) : x2,
+            top: line.end == identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) : y2,
+            angle: line.end == identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
+        }).setCoords();
+        canvas.sendToBack(line.triangle);
     });
     if (selected._updateTokens) {
         selected._updateTokens();
