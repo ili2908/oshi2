@@ -28,14 +28,17 @@ export class Node extends fabric.Circle {
         canvas.add(this);
     }
     addToken(color){
+        console.log(color);
         this.tokens.push({
             circle:new fabric.Circle({
-                radius: 5, fill: 'black',
+                radius: 5,
+                fill: fabric.Color.fromRgb(`rgb(${(14%color)*10},${(14%(color+2))*10},${(14%(color+4))*10})`),
                 top:10,
                 left:10,
                 hasBorders:false,
                 hasControls:false,
-            })
+            }),
+            color
         });
         this._updateTokens();
         this.tokens.forEach(({circle})=>this.canvas.add(circle))
@@ -45,8 +48,8 @@ export class Node extends fabric.Circle {
         this.setCoords();
         this.tokens.forEach(({circle},i)=>{
             circle.set({
-                left:x+Math.sin(2*Math.PI*i/(this.tokens.length-1))*10,
-                top:y+Math.cos(2*Math.PI*i/(this.tokens.length-1))*10
+                left:x-5+Math.sin(2*Math.PI*i/(this.tokens.length-1))*10,
+                top:y-5+Math.cos(2*Math.PI*i/(this.tokens.length-1))*10
             }).setCoords();
             
             this.canvas.bringToFront(circle);
