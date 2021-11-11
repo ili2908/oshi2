@@ -36,7 +36,11 @@ const createLine = ([x1, y1, x2, y2], color) => {
         fill: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
         left: x2,
         top: y2,
-        angle: Math.atan((x2 - x1) / (y2 - y1)) * 180 / Math.PI
+        angle: Math.atan((x2 - x1) / (y2 - y1)) * 180 / Math.PI,
+        hasBorders: false,
+        hasas: false,
+        evented: false,
+        selectable: false
     });
     const line = new fabric.Line([x1, y1, x2, y2], {
         stroke: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
@@ -98,8 +102,18 @@ states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
 
         const [x, y] = getCentre(newNode);
 
-        line.end = newNode.node.identifier
+        line.end = newNode.node.identifier;
         line.set({ x2: x, y2: y }).setCoords();
+        const x1 = line.x1;
+        const y1 = line.y1;
+        console.log(x1, y1);
+        const ang = Math.atan2((y - y1), (x - x1));
+        line.triangle.set({
+            left: x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)),
+            top: y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)),
+            angle: ang * 180 / Math.PI + 90
+        }).setCoords();
+        console.log(line.triangle.top, line.triangle.left);
 
         graph.connect(selected.node.identifier, newNode.node.identifier, {
             line
@@ -153,7 +167,13 @@ states["objectSelectedNode"].on(["move:mouse"], ({ pointer }) => {
     line.set({ x2: x, y2: y }).setCoords();
     const x1 = line.x1;
     const y1 = line.y1;
-    line.triangle.set({ left: x, top: y, angle: Math.atan2((y - y1), (x - x1)) * 180 / Math.PI }).setCoords();
+    const ang = Math.atan2((y - y1), (x - x1));
+    console.log(Math.sin(ang), Math.cos(ang));
+    line.triangle.set({
+        left: x + 5 * Math.sin(ang), // - 10 * Math.sqrt(2) * Math.cos(ang),
+        top: y - 5 * Math.cos(ang), // - 10 * Math.sqrt(2) * Math.sin(ang),
+        angle: ang * 180 / Math.PI + 90
+    }).setCoords();
     //line.triangle.setAngle(90);
     canvas.sendToBack(line).renderAll();
 });
