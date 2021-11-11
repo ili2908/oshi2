@@ -11,7 +11,7 @@ let keyPressed = [];
 const createNode = (x, y) => {
     let nn = new BaseNode(nodeCount++, { x, y });
     graph.addV(nn);
-    let gn = keyPressed.includes('Control') ?
+    let gn = keyPressed.includes("a") ?
         new fabric.Rect({
             width: 40,
             height: 40,
@@ -19,24 +19,26 @@ const createNode = (x, y) => {
             top: y - 20,
             left: x - 20,
             hasBorders: false,
-            hasControls: false,
+            hasas: false,
         }) :
         new Node(x, y, graph, canvas);
-    gn.isRect = keyPressed.includes('Control');
+    gn.isRect = keyPressed.includes("a");
     gn.node = nn;
     gn.tokens = [];
     canvas.add(gn)
     return gn;
 }
 
-const createLine = ([x1, y1, x2, y2]) => {
+const createLine = ([x1, y1, x2, y2], color) => {
     const line = new fabric.Line([x1, y1, x2, y2], {
-        stroke: 'red',
+        //stroke: 'red',
         hasBorders: false,
-        hasControls: false,
+        hasas: false,
         evented: false,
-        selectable: false
+        selectable: false,
+        fill: `rgb(${(17%+color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
     });
+    console.log(color);
     canvas.add(line);
     return line;
 
@@ -77,13 +79,12 @@ states["objectNotSelected"].on(["down:nothing", "down:node", "down:selected"], (
 
     selected = target;
     if (!selected) selected = createNode(Math.floor(pointer.x), Math.floor(pointer.y));
-    selected.addToken();
-    line = createLine([...getCentre(selected), Math.floor(pointer.x) - 2, Math.floor(pointer.y) - 2]);
+    line = createLine([...getCentre(selected), Math.floor(pointer.x) - 2, Math.floor(pointer.y) - 2], keyPressed.find(x => x >= '0' && x <= '9'));
     return states["objectSelectedNode"];
 
 }); //======
 states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
-    if (selected.isRect && !keyPressed.includes('ctrl') || !selected.isRect && keyPressed.includes('ctrl')) {
+    if (selected.isRect && !keyPressed.includes("a") || !selected.isRect && keyPressed.includes("a")) {
         let newNode = createNode(...adjastMousePointer(pointer));
 
         const [x, y] = getCentre(newNode);
@@ -97,11 +98,11 @@ states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
 
         canvas.renderAll();
         selected = newNode;
-        line = createLine([...getCentre(selected), Math.floor(pointer.x) - 2, Math.floor(pointer.y) - 2]);
+        line = createLine([...getCentre(selected), Math.floor(pointer.x) - 2, Math.floor(pointer.y) - 2], keyPressed.find(x => x >= '0' && x <= '9'));
     }
 }); //======
 states["objectSelectedNode"].on(["down:node"], ({ target }) => {
-    if (selected.isRect && !keyPressed.includes('ctrl') || !selected.isRect && keyPressed.includes('ctrl')) {
+    if (selected.isRect && !keyPressed.includes("a") || !selected.isRect && keyPressed.includes("a")) {
         const [x, y] = getCentre(target);
         const tId = target.node.identifier;
         const sId = selected.node.identifier;
@@ -125,6 +126,11 @@ states["objectSelectedNode"].on(["down:node"], ({ target }) => {
         return states["objectNotSelected"];
     }
 }); //=======
+states["objectSelectedNode"].on(["key:pressed"], ({ key }) => {
+    if (key == " ") {
+        selected.addToken(keyPressed.find(x => x >= '0' && x <= '9'));
+    }
+});
 states["objectSelectedNode"].on(["down:selected"], () => {
     deleteLine();
     return states["objectNotSelected"];
@@ -143,7 +149,9 @@ states["objectNotSelected"].on(["move:node"], () => {
 states["objectDragging"].on(["move:node"], ({ target, pointer }) => {
     deleteLine();
     const { identifier } = target.node;
-    target._updateTokens();
+    if (target._updateTokens) {
+        target._updateTokens();
+    }
     canvas.sendToBack(target);
     if (!graph.connections[identifier]) return;
 
@@ -165,7 +173,9 @@ states["objectDragging"].on(["up"], () => {
         line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
         canvas.sendToBack(line)
     });
-    selected._updateTokens();
+    if (selected._updateTokens) {
+        selected._updateTokens();
+    }
     canvas.renderAll();
     return states["objectNotSelected"];
 })
@@ -198,6 +208,7 @@ function initializeEvents(_canvas) {
 
         document.onkeydown = function(e) {
             keyPressed.push(e.key);
+            currentState = currentState.pass(`key:pressed`, { key: e.key });
         }
         document.onkeyup = function(e) {
             keyPressed = keyPressed.filter(val => e.key != val);
