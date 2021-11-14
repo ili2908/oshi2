@@ -330,7 +330,7 @@ function step1(){
         if(!graph.connections[key])return;
         Object.entries(graph.connections[key]).forEach(([vertex2,{data:{line}}])=>{
             const token = tokens.find(({color})=>color==line.color);
-            if(token)result.push([token.circle,line,vertex2]);
+            if(token)result.push([token.circle,line,vertex2,key]);
         })
     })
     return result;
@@ -349,7 +349,7 @@ async function greatMove(token,line){
             };
             //console.log(frame,token,line);
             moveToken(token,line,frame++);
-        },500);
+        },100);
     });
 }
 async function simulation(){
@@ -366,16 +366,18 @@ async function simulation(){
 
         await Promise.all(associations.map(async ([token,line,dest]) => await greatMove(token,line)));
 
-        //associations.forEach(([token,line])=>deleteToken(token))
+        associations.forEach(([token,line,dest,vertex])=>{
+            graph.nodes[vertex].data.n.removeToken(line.color);
+        });
         
-        /*const results = Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{line}])=>{
+        const results = Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{line}])=>{
                 const circle = createCircle(line);
                 await greatMove(circle,line);
-                deleteCircle(circle);
+                //deleteCircle(circle);
                 return [line.color,vertex];
             })
-        ).flat());*/
-
+        ).flat());
+        console.log(results);
         //results.forEach(([color,vertex])=>{
         //    graph.nodes[vertex].n.addToken(color)
         //});

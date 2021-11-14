@@ -48,6 +48,10 @@ export class Node extends fabric.Circle {
         this._updateTokens();
         this.tokens.forEach(({ circle }) => this.canvas.add(circle))
     }
+    removeToken(c){
+        const number = this.tokens.findIndex(({color})=>c==color)
+        this.tokens = this.tokens.filter((_, index) => index != number);
+    }
     _updateTokens() {
         const [x, y] = getCentre(this);
         this.setCoords();
