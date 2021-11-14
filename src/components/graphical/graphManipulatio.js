@@ -53,7 +53,7 @@ const createLine = ([x1, y1, x2, y2], color) => {
         selectable: false
     });
     line.triangle = triangle;
-    line.color = color;
+    line.color = color||0;
     canvas.add(line);
     canvas.add(triangle);
     return line;
@@ -205,7 +205,7 @@ states["objectSelectedNode"].on(["move:mouse"], ({ pointer }) => {
     const x1 = line.x1;
     const y1 = line.y1;
     const ang = Math.atan2((y - y1), (x - x1));
-    console.log(Math.sin(ang), Math.cos(ang));
+    
     line.triangle.set({
         left: x + 5 * Math.sin(ang), // - 10 * Math.sqrt(2) * Math.cos(ang),
         top: y - 5 * Math.cos(ang), // - 10 * Math.sqrt(2) * Math.sin(ang),
@@ -236,7 +236,7 @@ states["objectDragging"].on(["move:node"], ({ target, pointer }) => {
         const x1 = line.end === identifier ? line.x1 : line.x2;
         const y1 = line.end === identifier ? line.y1 : line.y2;
         const ang = Math.atan2((y - y1), (x - x1));
-        console.log(x1, y1, ang);
+        
         line.triangle.set({
             left: (line.end === identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) :
                 x1 - 5 * Math.sin(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang))),
@@ -327,10 +327,7 @@ const createCircle = (line2) => {
         fill: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
         top: line2.y1,
         left: line2.x1,
-        hasBorders: false,
-        hasControls: false,
-        "selectable": false,
-        "evented": false
+
     })
     canvas.add(circle);
     return circle;
@@ -338,12 +335,12 @@ const createCircle = (line2) => {
 
 function step1() {
     const result = [];
-    console.log(graph.nodes)
-    Object.entries(graph.nodes).filter(([_, { data: { n } }]) => n).forEach(([key, { data: { n: { tokens } } }]) => {
-        console.log(key, tokens, graph.connections[key])
+    
+    Object.entries(graph.nodes).filter(([_, { data: { n } }]) => n).forEach(([key, { data: { n } }]) => {
         if (!graph.connections[key]) return;
         Object.entries(graph.connections[key]).forEach(([vertex2, { data: { line } }]) => {
-            const token = tokens.find(({ color }) => color == line.color);
+            const token = n.tokens.find(({ color }) => color == line.color);
+            n.removeToken(line.color);
             if (token) result.push([token.circle, line, vertex2,key]);
         })
     })
@@ -353,19 +350,18 @@ function step1() {
 
 const FRAME_COUNT = 100;
 async function greatMove(token, line) {
-    /*token.set({ top: line.y1, left: line.x1 }).setCoords();
-    canvas.renderAll();*/
-    return new Promise((resolve) => {
+
+    return new Promise(function (resolve){
         let frame = 0;
-        console.log("start");
         const interval = setInterval(() => {
             if (frame == FRAME_COUNT) {
                 clearInterval(interval);
+                canvas.remove(token).renderAll();
                 resolve();
             };
             //console.log(frame,token,line);
             moveToken(token, line, frame++);
-        }, 100);
+        }, 10);
     });
 }
 async function simulation() {
@@ -373,8 +369,6 @@ async function simulation() {
         let associations = step1();
         if (associations.length == 0) break;
         const dests = associations.map(([_, __, dest]) => dest).filter((dest, i, arr) => arr.indexOf(dest) == i);
-        console.log(associations);
-
         //dests.forEach(dest=>{
         //    const vertexes = Object.keys(graph.inboundConnections[dest]);
         //    associations.filter(([_,_,d])=>d==dest).map(([token,line,_,end])=>end)
@@ -382,26 +376,22 @@ async function simulation() {
 
         await Promise.all(associations.map(async([token, line, dest, vertex]) => {
             
-            graph.nodes[vertex].data.n.removeToken(line.color);
-            await greatMove(token, line)
-            canvas.remove(token);
+            
+            await greatMove(token, line);
+            
         
         }));
-        canvas.renderAll();
         
-        const results = Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{data:{line}}])=>{
+        const results = await Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{data:{line}}])=>{
                 const circle = createCircle(line);
-                console.log(circle)
                 await greatMove(circle,line);
-                //deleteCircle(circle);
                 return [line.color,vertex];
             })
         ).flat());
-        console.log(results);
         
-        //results.forEach(([color,vertex])=>{
-        //    graph.nodes[vertex].n.addToken(color)
-        //});
+        results.forEach(([color,vertex])=>{
+            graph.nodes[vertex].data.n.addToken(color)
+        });
     }
 
 }

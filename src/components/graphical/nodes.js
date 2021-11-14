@@ -30,7 +30,7 @@ export class Node extends fabric.Circle {
         this.canvas = canvas;
         canvas.add(this);
     }
-    addToken(color) {
+    addToken(color=0) {
         if (this.tokens.length == 6) return;
         this.tokens.push({
             circle: new fabric.Circle({
@@ -39,9 +39,8 @@ export class Node extends fabric.Circle {
                 top: 10,
                 left: 10,
                 hasBorders: false,
-                hasControls: false,
-                "selectable": false,
-                "evented": false
+                evented: false,
+                selectable: false
             }),
             color
         });
