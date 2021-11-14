@@ -38,9 +38,9 @@ export class Node extends fabric.Circle {
                 fill: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
                 top: 10,
                 left: 10,
-                hasBorders: false,
-                evented: false,
-                selectable: false
+                //hasBorders: false,
+                //evented: false,
+                //selectable: false
             }),
             color
         });
