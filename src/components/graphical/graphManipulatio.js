@@ -344,7 +344,7 @@ function step1() {
         if (!graph.connections[key]) return;
         Object.entries(graph.connections[key]).forEach(([vertex2, { data: { line } }]) => {
             const token = tokens.find(({ color }) => color == line.color);
-            if (token) result.push([token.circle, line, vertex2,key]);
+            if (token) result.push([token.circle, line, vertex2, key]);
         })
     })
     return result;
@@ -375,30 +375,38 @@ async function simulation() {
         const dests = associations.map(([_, __, dest]) => dest).filter((dest, i, arr) => arr.indexOf(dest) == i);
         console.log(associations);
 
-        //dests.forEach(dest=>{
-        //    const vertexes = Object.keys(graph.inboundConnections[dest]);
-        //    associations.filter(([_,_,d])=>d==dest).map(([token,line,_,end])=>end)
-        //});
+        dests.forEach(dest => {
+            let assoc = associations;
+            const vertexes = Object.keys(graph.inboundConnections[dest]);
+            if (assoc.filter(([_, __, d]) => d == dest).length == vertexes.length) {
+                associations.filter(([_, __, d]) => d != dest);
+            };
+        });
+
+        console.log(associations);
 
         await Promise.all(associations.map(async([token, line, dest, vertex]) => {
-            
+
             graph.nodes[vertex].data.n.removeToken(line.color);
             await greatMove(token, line)
-            canvas.remove(token);
-        
+            console.log(canvas.contains(token));
+            if (token) {
+                canvas.remove(token).renderAll();
+            }
+            token = null;
+            console.log(token);
         }));
         canvas.renderAll();
-        
-        const results = Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{data:{line}}])=>{
-                const circle = createCircle(line);
-                console.log(circle)
-                await greatMove(circle,line);
-                //deleteCircle(circle);
-                return [line.color,vertex];
-            })
-        ).flat());
+
+        const results = Promise.all(dests.map(dest => Object.entries(graph.connections[dest]).map(async([vertex, { data: { line } }]) => {
+            const circle = createCircle(line);
+            console.log(circle)
+            await greatMove(circle, line);
+            //deleteCircle(circle);
+            return [line.color, vertex];
+        })).flat());
         console.log(results);
-        
+
         //results.forEach(([color,vertex])=>{
         //    graph.nodes[vertex].n.addToken(color)
         //});
