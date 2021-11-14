@@ -22,7 +22,7 @@ export class Node extends fabric.Circle {
             hasBorders: false,
             hasControls: false,
         });
-        this.node = new BaseNode(nodeCount++, { x, y,n:this });
+        this.node = new BaseNode(nodeCount++, { x, y, n: this });
         graph.addV(this.node);
         this.tokens = [];
         this.centreX = x;

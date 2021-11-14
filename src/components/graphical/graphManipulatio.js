@@ -320,7 +320,20 @@ function initializeEvents(_canvas) {
     });
 }
 
-
+const createCircle = (line2) => {
+    let color = line2.color;
+    let circle = new fabric.Circle({
+        radius: 5,
+        fill: `rgb(${(17%color)*30},${(17%(+color+2))*30},${(17%(+color+4))*30})`,
+        top: line2.y1,
+        left: line2.x1,
+        hasBorders: false,
+        hasControls: false,
+        "selectable": false,
+        "evented": false
+    })
+    return circle;
+}
 
 function step1() {
     const result = [];
@@ -339,8 +352,8 @@ function step1() {
 
 const FRAME_COUNT = 100;
 async function greatMove(token, line) {
-    token.set({ top: line.y1, left: line.x1 }).setCoords();
-    canvas.renderAll();
+    /*token.set({ top: line.y1, left: line.x1 }).setCoords();
+    canvas.renderAll();*/
     return new Promise((resolve) => {
         let frame = 0;
         console.log("start");
