@@ -75,6 +75,20 @@ const adjastMousePointer = (pointer) => {
     return [Math.floor(pointer.x) - 2, Math.floor(pointer.y) - 2];
 }
 
+const moveToken = (token, line2, frame) => {
+    const x1 = line2.x1;
+    const x2 = line2.x2;
+    const y1 = line2.y1;
+    const y2 = line2.y2;
+    const len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    const move = len / 100 * frame;
+    const ang = Math.atan2((y2 - y1), (x2 - x1))
+    token.set({
+        top: move * Math.sin(ang) + y1,
+        left: move * Math.cos(ang) + x1
+    }).setCoords();
+}
+
 
 //======================================================================
 const statesNames = [
@@ -100,7 +114,7 @@ states["objectNotSelected"].on(["down:nothing", "down:node", "down:selected"], (
 
 }); //======
 states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
-    if (selected.isRect && !keyPressed.includes("a") || !selected.isRect && keyPressed.includes("a")) {
+    if ((selected.isRect && !keyPressed.includes("a")) || (!selected.isRect && keyPressed.includes("a"))) {
         let newNode = createNode(...adjastMousePointer(pointer));
 
         const [x, y] = getCentre(newNode);
@@ -128,7 +142,7 @@ states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
     }
 }); //======
 states["objectSelectedNode"].on(["down:node"], ({ target }) => {
-    if (selected.isRect && !target.isRect || !selected.isRect && target.isRect) {
+    if ((selected.isRect && !target.isRect) || (!selected.isRect && target.isRect)) {
         const [x, y] = getCentre(target);
         const tId = target.node.identifier;
         const sId = selected.node.identifier;
@@ -167,8 +181,31 @@ states["objectSelectedNode"].on(["down:node"], ({ target }) => {
         return states["objectNotSelected"];
     }
 }); //=======
+
+states["objectNotSelected"].on(["key:pressed"], ({ key }) => {
+    if (key === "q") {
+        const line2 = new fabric.Line([100, 100, 200, 200], {
+            stroke: 'black',
+            hasBorders: false,
+            hasas: false,
+            evented: false,
+            selectable: false
+        });
+        canvas.add(line2);
+        const circle = new fabric.Circle({
+            radius: 5,
+            top: 100,
+            left: 100,
+            hasBorders: false,
+            hasControls: false,
+        });
+        canvas.add(circle);
+        moveToken(circle, line2, 75);
+        canvas.renderAll();
+    }
+});
 states["objectSelectedNode"].on(["key:pressed"], ({ key }) => {
-    if (key == " ") {
+    if (key === " ") {
         if (selected.addToken) selected.addToken(keyPressed.find(x => x >= '0' && x <= '9'));
     }
 });
@@ -209,17 +246,17 @@ states["objectDragging"].on(["move:node"], ({ target, pointer }) => {
     const [x, y] = adjastMousePointer(pointer);
     Object.entries({...graph.connections[identifier], ...graph.inboundConnections[identifier] }).forEach(([_, connection]) => {
         const { line } = connection.data;
-        line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
-        const x1 = line.end == identifier ? line.x1 : line.x2;
-        const y1 = line.end == identifier ? line.y1 : line.y2;
+        line.set(line.end === identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
+        const x1 = line.end === identifier ? line.x1 : line.x2;
+        const y1 = line.end === identifier ? line.y1 : line.y2;
         const ang = Math.atan2((y - y1), (x - x1));
         console.log(x1, y1, ang);
         line.triangle.set({
-            left: (line.end == identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) :
+            left: (line.end === identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) :
                 x1 - 5 * Math.sin(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang))),
-            top: (line.end == identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) :
+            top: (line.end === identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) :
                 y1 + 5 * Math.cos(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang))),
-            angle: line.end == identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
+            angle: line.end === identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
         }).setCoords();
         canvas.sendToBack(line);
         canvas.sendToBack(line.triangle);
@@ -233,19 +270,24 @@ states["objectDragging"].on(["up"], () => {
     if (!graph.connections[identifier]) return states["objectNotSelected"];
     Object.entries({...graph.connections[identifier], ...graph.inboundConnections[identifier] }).forEach(([_, connection]) => {
         const { line } = connection.data;
-        line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
+        line.set(line.end === identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
         canvas.sendToBack(line)
-        line.set(line.end == identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
-        const x1 = line.end == identifier ? line.x1 : line.x2;
-        const y1 = line.end == identifier ? line.y1 : line.y2;
-        const x2 = line.triangle.left;
-        const y2 = line.triangle.top;
+        line.set(line.end === identifier ? { x2: x, y2: y } : { x1: x, y1: y }).setCoords();
+        const x1 = line.end === identifier ? line.x1 : line.x2;
+        const y1 = line.end === identifier ? line.y1 : line.y2;
         const ang = Math.atan2((y - y1), (x - x1));
         line.triangle.set({
-            left: line.end == identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) : x2,
-            top: line.end == identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) : y2,
-            angle: line.end == identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
+            left: (line.end === identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) :
+                x1 - 5 * Math.sin(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang - Math) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang))),
+            top: (line.end === identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) :
+                y1 + 5 * Math.cos(ang) + (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang))),
+            angle: line.end === identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
         }).setCoords();
+        //line.triangle.set({
+        //    left: line.end == identifier ? x + 5 * Math.sin(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.cos(ang) : 25 /*10(radius) + 15(triangle)*/ * Math.cos(ang)) : x2,
+        //    top: line.end == identifier ? y - 5 * Math.cos(ang) - (line.isRect ? (10 * Math.sqrt(2) + 15) * Math.sin(ang) : 25 * Math.sin(ang)) : y2,
+        //    angle: line.end == identifier ? ang * 180 / Math.PI + 90 : ang * 180 / Math.PI - 90,
+        //}).setCoords();
         canvas.sendToBack(line.triangle);
     });
     if (selected._updateTokens) {
@@ -286,10 +328,9 @@ function initializeEvents(_canvas) {
             currentState = currentState.pass(`key:pressed`, { key: e.key });
         }
         document.onkeyup = function(e) {
-            keyPressed = keyPressed.filter(val => e.key != val);
+            keyPressed = keyPressed.filter(val => e.key !== val);
         }
     });
-
 }
 export default {
     initializeEvents
