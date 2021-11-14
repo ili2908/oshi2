@@ -1,4 +1,5 @@
 import { fabric } from 'fabric';
+import { createIncrementalCompilerHost } from 'typescript';
 import { Graph, BaseNode } from '../simple_graphs'
 import { Node } from './nodes';
 import { State } from './utils/StateMachine'
@@ -50,7 +51,7 @@ const createLine = ([x1, y1, x2, y2], color) => {
         selectable: false
     });
     line.triangle = triangle;
-    console.log(color);
+    line.color = color;
     canvas.add(line);
     canvas.add(triangle);
     return line;
@@ -257,6 +258,7 @@ states["objectDragging"].on(["up"], () => {
 
 //=========================================================================
 function initializeEvents(_canvas) {
+
     canvas = _canvas;
     let currentState = states["objectNotSelected"];
     canvas.on('mouse:down', ({ target, pointer }) => {
@@ -290,6 +292,68 @@ function initializeEvents(_canvas) {
         }
     });
 
+}
+
+
+const FRAME_COUNT = 100;
+
+function moveToken(token,line,frame){
+    
+}
+
+function step1(){
+    //return [[token,arrow],...];
+}
+
+async function greatMove(token,line){
+    return new Promise((resolve) => {
+        let frame;
+        const interval  = setInterval(()=>{
+            if(frame==FRAME_COUNT){
+                clearInterval(interval);
+                resolve();
+            };
+            moveToken(token,line,frame++);
+        },500);
+    });
+}
+async function simulation(){
+    while(true){
+        let associations = step1();
+        if(associations.length==0)break;
+        const dests = associations.map(([_,_,dest])=>dest).filter((dest,i,arr)=>arr.indexOf(dest)==i);
+
+
+        //dests.forEach(dest=>{
+        //    const vertexes = Object.keys(graph.inboundConnections[dest]);
+        //    associations.filter(([_,_,d])=>d==dest).map(([token,line,_,end])=>end)
+        //});
+
+        await Promise.all(associations.map(async ([token,line,dest]) => await greatMove(token,line)));
+
+        associations.forEach(([token,line])=>deleteToken(token))
+
+        
+        /*
+            result:[[color,vertex]]
+            create circles
+            move squares->dests
+
+
+        */
+        const results = Promise.all(dests.map(dest=>Object.entries(graph.connections[dest]).map( async ([vertex,{line}])=>{
+                const circle = createCircle(line);
+                await greatMove(circle,line);
+                deleteCircle(circle);
+                return [line.color,vertex];
+            })
+        ).flat());
+
+        results.forEach(([color,vertex])=>{
+            graph.nodes[vertex].n.addToken(color)
+        });
+    }
+    
 }
 export default {
     initializeEvents
