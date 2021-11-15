@@ -3,6 +3,7 @@ import { createIncrementalCompilerHost } from 'typescript';
 import { Graph, BaseNode } from '../simple_graphs'
 import { Node } from './nodes';
 import { State } from './utils/StateMachine'
+import kazka from './kazka.json';
 let graph = new Graph();
 let nodeCount = 0;
 let canvas;
@@ -146,6 +147,7 @@ states["objectSelectedNode"].on(["down:nothing"], ({ target, pointer }) => {
     }
 }); //======
 states["objectSelectedNode"].on(["down:node"], ({ target }) => {
+    console.log(1);
     if ((selected.isRect && !target.isRect) || (!selected.isRect && target.isRect)) {
         const [x, y] = getCentre(target);
         const tId = target.node.identifier;
@@ -377,14 +379,13 @@ async function simulation() {
         let associations = step1();
         
         let dests = associations.map(([_, __, dest]) => dest).filter((dest, i, arr) => arr.indexOf(dest) == i);
-        /*dests.forEach(dest => {
-            let assoc = associations;
-            const vertexes = Object.keys(graph.inboundConnections[dest]);
-            if (assoc.filter(([_, __, d]) => d == dest).length != vertexes.length) {
-                associations = associations.filter(([_, __, d]) => d != dest);
-                dests = dests.filter( d=>d != dest);
-            };
-        });*/
+        dests.forEach(dest => {
+            const res = associations.filter(([_, __, d]) => dest==d).map(([_,{color},__]) => color).sort().join(" ");
+            if(kazka[dest]&&kazka[dest][res]){
+                console.log(kazka[dest][res]);
+            }
+            
+        });
         if (associations.length == 0) break;
         await Promise.all(associations.map(async([token, line, dest, vertex]) => {
             await greatMove(token, line, dest);
