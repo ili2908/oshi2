@@ -1,14 +1,11 @@
 {
     "placeholder":"then nothing happens",
-    "0":{
+    "nodePlaceholder":{
         "0":  "then clown was trotting through the forest",
         "1":  "then wolf was trotting through the forest",
         "0 1":"then wolf meet clown in the forest",
         "0 0":"two wolfs meet in the forest",
         "1 1":"two wolfs meet in the forest"
-    },  
-    "1":{
-
     }
     
 }
