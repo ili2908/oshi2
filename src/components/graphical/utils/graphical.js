@@ -1,3 +1,4 @@
+import { fabric } from 'fabric';
 
 class AddNode{
     NODE_COUNT=0
@@ -7,10 +8,12 @@ class AddNode{
     }
     execute(node){
         if(!node.data.x||!node.data.y)throw "Bad node position";
+        const {x, y} = node.data;
+        
         this.graph.addV(node);
         let graphicalNode = {
             ...new fabric.Circle({
-                radius: 20, fill: 'green',top:y-20,left:x-20,
+                radius: 20, fill: 'green',top: y -20,left: x - 20,
                 hasBorders:false,
                 hasControls:false, 
             }),
