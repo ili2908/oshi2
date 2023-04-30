@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/oshi2/static/css/main.1678822b.css",
-    "main.js": "/oshi2/static/js/main.c8d3b776.js",
+    "main.js": "/oshi2/static/js/main.418650a1.js",
     "index.html": "/oshi2/index.html",
     "main.1678822b.css.map": "/oshi2/static/css/main.1678822b.css.map",
-    "main.c8d3b776.js.map": "/oshi2/static/js/main.c8d3b776.js.map"
+    "main.418650a1.js.map": "/oshi2/static/js/main.418650a1.js.map"
   },
   "entrypoints": [
     "static/css/main.1678822b.css",
-    "static/js/main.c8d3b776.js"
+    "static/js/main.418650a1.js"
   ]
 }
