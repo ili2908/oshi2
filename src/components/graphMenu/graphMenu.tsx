@@ -73,7 +73,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
             </button>
             
             </div>
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button style = {{marginRight: '3%'}} onClick = {() => {
                     lineGraph(this.graph);
                 }}>
@@ -96,7 +96,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                 </button>
                 
             </div>
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button onClick = {() => {
                     var e = document.getElementById("join");
                     joinGraphs(this.graph, this.graphs.find(({identifier})=>identifier === (e as HTMLInputElement).value)!);
@@ -112,8 +112,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                     }
                 </select>
             </div>
-            <hr/>
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button onClick = {() => {
                     var e1 =  document.getElementById("path1");
                     var e2 = document.getElementById("path2");
@@ -141,7 +140,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                     }
                 </select>
             </div>
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button onClick = {() => {
                     var e1 =  document.getElementById("metric1");
                     var e2 = document.getElementById("metric2");
@@ -170,7 +169,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                 </select>
                
             </div> 
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button style = {{marginRight: '3%'}} onClick = {() => {
                     findArticulationPoints(this.graph); //Tarjan's algorithm
                 }}>
@@ -183,7 +182,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                 </button>
             </div>
             <hr/>
-            <div style = {{display: 'flex', marginTop:'3%', paddingLeft:'7%'}}>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button style = {{marginRight: '3%'}} onClick = {() => {
                     const obj = getAdjMatrix(this.graph);
                     const stringifyMatrix = (matrix: number[][]) => {
@@ -221,7 +220,7 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                 </button>
                 
             </div>
-            <div style = {{overflow: "scroll", marginTop:'3%', paddingLeft:'7%', paddingRight:'7%', maxWidth: "500px", height:"300px"}}>
+            <div style = {{overflow: "scroll", marginTop:'3%', paddingLeft:'7%', paddingRight:'7%', maxWidth: "500px", height:"200px"}}>
                 <textarea cols={100} rows={100} style={{
                     width: "100%",
                     height: "100%",

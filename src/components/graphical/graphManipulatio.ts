@@ -11,6 +11,7 @@ import { graph, graphs, multipleSelection, setActiveGraph, setGraphs, setSelecti
 import { ConnectionData, GConnection, GNode } from './types';
 import appState from '../../utils/appState';
 import { GraphManager } from './renderingStrategies/graphManager';
+import { Point } from 'fabric/fabric-impl';
 let operations: BasicOperations;
 export let canvas: fabric.Canvas;
 let selected: BasicGNode|BasicGConnection|null;
@@ -397,6 +398,18 @@ export const findMetric = (graph: GGraph, id1: string, id2: string) => {
     })
 }
 
+export const zoom = (z:number): number[]=>{
+        var prev = canvas.getZoom();
+        var viewportWidth = canvas.width! / z;
+        var viewportHeight = canvas.height! / z;
+        var viewportOffsetX = canvas.viewportTransform![4]! / z;
+        var viewportOffsetY = canvas.viewportTransform![5]! / z;
+        canvas.setZoom(z);
+        canvas.setHeight(3000*z);
+        canvas.setWidth(3000*z);
+        return [viewportWidth,viewportHeight, viewportOffsetX,viewportOffsetY,prev];
+    
+}
 export const fromAdjacencyMatrix = (matrix: number[][])=>{
     operations.undoOperations.txOpen();
     if(matrix.length!=matrix[0].length) {
@@ -404,7 +417,6 @@ export const fromAdjacencyMatrix = (matrix: number[][])=>{
     }
     
     const newGraph = new GGraph();
-    console.log(1,{...newGraph.connections});
     matrix[0].forEach((node: any, i)=>{
         const nodeX = 800 + 100 * Math.cos(2 * Math.PI * i / matrix.length);
         const nodeY = 400 + 100 * Math.sin(2 * Math.PI * i / matrix.length);
@@ -417,7 +429,6 @@ export const fromAdjacencyMatrix = (matrix: number[][])=>{
                 operations.addConnection({directions:
                     [...Array(cons).keys()].map(()=>({zeroToOne: true}))
                 }, nodes[i], nodes[j]);
-                console.log(3,{...newGraph.connections});
             }
         });
     });
@@ -954,7 +965,6 @@ states["objectDragging"].on(["up"], () => {
 })
 
 State.on(["key:pressed"], ({key}: { key: string}) => {
-
     deleteLine();
     if(key === "Control") {
         return states["ctrlPressed"];
@@ -1014,7 +1024,6 @@ function initializeEvents(_canvas: any) {
     operations = new BasicOperations(canvas);
     currentState = states["objectNotSelected"];
     canvas.on('mouse:down', ({ target, e }) => {
-        
         e.preventDefault();
         if(appState.drawMode())return;
         const pointer = canvas.getPointer(e)

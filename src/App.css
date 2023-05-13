@@ -1,3 +1,5 @@
 .react-tabs__tab--selected {
     background: #93989b;
+    border: none;
+    outline: none;
 }

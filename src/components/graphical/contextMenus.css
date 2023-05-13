@@ -7,6 +7,7 @@
 
   .context-menu-option {
     cursor: pointer;
+    font-size: 9px;
   }
 
   .context-menu-option:hover {

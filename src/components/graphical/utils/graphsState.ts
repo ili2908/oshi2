@@ -19,7 +19,6 @@ export const setSelection = (multipleSelection: (BasicGNode | BasicGConnection)[
 
 export const setGraphs = (_graphs: GGraph[]) => {
     graphs = _graphs;
-    console.log(graphs);
     _setGraphs([...graphs]);
 }
 

@@ -13,13 +13,8 @@ export const customContextMenu = (event: any, options: {
     let contextMenu = document.createElement('div');
     contextMenu.id = 'contextMenu:' + menuCount++;
     contextMenu.className = 'context-menu';
-    contextMenu.style.position = 'absolute';
     contextMenu.style.left = mouseX + 'px';
-    contextMenu.style.top = mouseY + 'px';
-    contextMenu.style.backgroundColor = '#fff';
-    contextMenu.style.padding = '5px';
-    contextMenu.style.border = '1px solid #000';
-
+    contextMenu.style.top = mouseY + 'px';  
     for(const optionName in options) {
         if(options[optionName][1]?.hide) {
             continue;

@@ -46,7 +46,7 @@ export const ImportButtonWithModal = ({ onImport }: any) => {
   
     return (
       <div>
-        <button className="import-button" style={{height: '100%', width: '100%', borderRadius: '20px 0px 0px 20px'}} onClick={handleImportClick}>
+        <button className="import-button" style={{height: '100%', width: '100%', background:"#49524c", border: 'none' , color: "#93a399"}} onClick={handleImportClick}>
           Import
         </button>
         {showModal && (

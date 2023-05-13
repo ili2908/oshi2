@@ -7,6 +7,7 @@ import { graphs, setActiveGraph, setGraphs } from '../utils/graphsState';
 import { getCentre, UndoOperations } from '../utils/utils';
 import appState from '../../../utils/appState';
 import { GraphManager } from './graphManager';
+import { operation } from 'retry';
 
 
 let NODE_SIZE = 15;
@@ -46,12 +47,15 @@ export class BasicOperations {
         node.data.marked = true;
         this.undoOperations.push(()=>{
             node.data.marked = false;
+            const centerX = node.graphical.circle.left! + node.graphical.circle.radius!;
+            const centerY = node.graphical.circle.top! + node.graphical.circle.radius!;
             node.graphical.circle.set({
                 fill: prevColor,
                 radius: prevSize,
                 left: centerX - prevSize!,
                 top: centerY - prevSize!
             }).setCoords();
+
             this.canvas.renderAll();
         })
         
@@ -66,6 +70,7 @@ export class BasicOperations {
             hasBorders:false,
             hasControls:false, 
         });
+        circle.canvas = this.canvas;
         circle.data = {node:this};
         const newNode = new BasicGNode(data, {circle}, graph, identifier);
         graph.addV(newNode);
@@ -143,7 +148,7 @@ export class BasicOperations {
             node.graphical.text.set({
                 top: getCentre(node.graphical.circle as fabric.Circle)[1]-40,
                 left: getCentre(node.graphical.circle as fabric.Circle)[0]-40,
-            })
+            }).setCoords();
         }
         Object.entries({...node.graph.connections[node.identifier] }).forEach(([_, connection]) => {
             this.moveConnection(connection);

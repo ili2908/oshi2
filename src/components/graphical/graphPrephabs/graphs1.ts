@@ -20,7 +20,7 @@ export const createFullGraph = (n: number, x: number, y:number, operations: Basi
     return graph;
 }
 
-export const createCycle = (n: number, x: number, y:number, operations: BasicOperations) => {
+export const createCycle = (n: number, x: number, y:number, operations: BasicOperations, addGraph = true) => {
     operations.undoOperations.txOpen();
     const r = 50+ n*3;
     const graph = new GGraph();
@@ -39,14 +39,16 @@ export const createCycle = (n: number, x: number, y:number, operations: BasicOpe
         prevNode = node;       
     }
     operations.addConnection({directions:[{}]}, firstNode!, prevNode!);
-    operations.addGraph(graph);
+    if(addGraph) {
+        operations.addGraph(graph);
+    }
     operations.undoOperations.txClose();
     return graph;
 }
 
 export const createWheel = (n: number, x: number, y:number, operations: BasicOperations) => {
     operations.undoOperations.txOpen();
-    const graph = createCycle(n,x,y,operations);
+    const graph = createCycle(n,x,y,operations, false);
     const node = operations.addNode(graph, {},x, y);
     for(const key in graph.nodes) {
         if(node.identifier !== graph.nodes[key].identifier) {
@@ -83,8 +85,8 @@ export const createLadder = (n: number, x: number, y:number, operations: BasicOp
 export const createPrisma = (n: number, x: number, y:number, operations: BasicOperations) => {
     operations.undoOperations.txOpen();
     const r = 50+n*3;
-    const bottom = createCycle(n,x,y,operations);
-    const top = createCycle(n,x,y-r,operations);
+    const bottom = createCycle(n,x,y, operations, false);
+    const top = createCycle(n,x,y-r,operations, false);
     const result = bottom.merge(top);
     const topNodes = top.getNodes();
     const bottomNodes = bottom.getNodes();
@@ -133,7 +135,7 @@ export const createPeterson = ( x: number, y:number, operations: BasicOperations
 
 export const createK = (n: number, n2: number, x: number, y:number, operations: BasicOperations) => { 
     operations.undoOperations.txOpen();
-    const r = 50;
+    const r = 100;
     const graph = new GGraph();
     const right: BasicGNode[] = [];
     const left: BasicGNode[] = [];
