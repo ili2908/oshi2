@@ -1,7 +1,7 @@
 import React from "react";
 import { download } from "../../utils/download";
 import { BasicGConnection, BasicGNode, GGraph } from "../graphical/classes/basic";
-import { expand, findArticulationEdgeDirected, findArticulationEdges, findArticulationPoints, findArticulationPointsDirected, findMetric, findPath, fromAdjacencyMatrix, getAdjMatrix, graphColoring, inverseGraph, joinGraphs, labelAllNodesInGraph, lineGraph, select, shrink, transposeGraph, unselect } from "../graphical/graphManipulatio";
+import { expand, findArticulationEdgeDirected, findArticulationEdges, findArticulationPoints, findArticulationPointsDirected, findDijkstra, findMetric, findPath, fromAdjacencyMatrix, getAdjMatrix, graphColoring, inverseGraph, joinGraphs, labelAllNodesInGraph, lineGraph, primSpanningTree, select, shrink, transposeGraph, unselect } from "../graphical/graphManipulatio";
 import { GConnection, GNode } from "../graphical/types";
 import { multipleSelection, setActiveGraph, setGraphs } from "../graphical/utils/graphsState";
 import { getCentre } from "../graphical/utils/utils";
@@ -142,6 +142,34 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
             </div>
             <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
                 <button onClick = {() => {
+                    var e1 =  document.getElementById("pathD1");
+                    var e2 = document.getElementById("pathD2");
+                    findDijkstra(
+                        this.graph, 
+                        multipleSelection()?.["0"]?.identifier || (e1 as HTMLInputElement).value, 
+                        multipleSelection()?.at(-1)?.identifier || (e2 as HTMLInputElement).value);
+                }}>
+                    Find Dijkstra path between:
+                </button>
+                <select name="pathD1" id="pathD1">
+                    {
+                        this.graph.getNodes().map(({identifier})=>{
+                            
+                            return (<option key = {identifier} value={identifier}>{identifier}</option>)
+                        })
+                    }
+                </select>
+                <select name="pathD2" id="pathD2">
+                    {
+                        this.graph.getNodes().map(({identifier})=>{
+                            
+                            return (<option key = {identifier} value={identifier}>{identifier}</option>)
+                        })
+                    }
+                </select>
+            </div>
+            <div style = {{display: 'flex', marginTop:'1%', paddingLeft:'7%'}}>
+                <button onClick = {() => {
                     var e1 =  document.getElementById("metric1");
                     var e2 = document.getElementById("metric2");
                     findMetric(
@@ -179,6 +207,11 @@ export default class GraphMenu extends React.Component<{graph: GGraph, graphs: G
                     findArticulationEdges(this.graph); //Tarjan's algorithm
                 }}>
                     Articulation edges
+                </button>
+                <button style = {{marginRight: '3%'}} onClick = {() => {
+                    primSpanningTree(this.graph); 
+                }}>
+                    Min spanning tree
                 </button>
             </div>
             <hr/>

@@ -4,6 +4,7 @@ import { IBaseConnection, IBaseNode } from "../simple_graphs/interfaces";
 
 export interface ConnectionData {
     label?: string;
+    weight?: number;
     directions: {zeroToOne?: boolean}[]    
 }
 

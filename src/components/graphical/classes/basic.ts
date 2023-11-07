@@ -24,7 +24,7 @@ export class BasicGConnection implements GConnection<ConnectionData, BasicGNode>
     identifier: string;
     constructor(
         public data: ConnectionData,
-        public graphical: { [key: string]: fabric.Path | fabric.Triangle | fabric.Circle },
+        public graphical: { [key: string]: fabric.Path | fabric.Triangle | fabric.Circle | fabric.Text },
         public graph: GGraph,
         public node0: BasicGNode,
         public node1: BasicGNode,

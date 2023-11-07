@@ -137,6 +137,7 @@ export class BasicOperations {
             this.addConnection({
                 label: connection!.data.label,
                 directions: durections,
+                weight: connection.data.weight
             }, connection.node0, connection.node1, false);
         });
         this.undoAddConnection(connection, {directions: [...connection?.data.directions!]});
@@ -306,6 +307,15 @@ export class BasicOperations {
 
     private moveConnection(con: BasicGConnection) {
         const {node0, node1} = con;
+        const middleX = getCentre(con.node0.graphical.circle as fabric.Circle)[0] + getCentre(con.node1.graphical.circle as fabric.Circle)[0];
+        const middleY = getCentre(con.node0.graphical.circle as fabric.Circle)[1] + getCentre(con.node1.graphical.circle as fabric.Circle)[1];
+        if(con.graphical.text) {
+            (con.graphical.text as fabric.Text).set({
+                top: middleY /2,
+                left: middleX / 2,
+            }).setCoords();
+        }
+       
         con.data.directions.map(({zeroToOne},i)=>{
             const path = con.graphical[`path${i}`] as fabric.Path;
             this.canvas.remove(path);
@@ -449,6 +459,7 @@ export class BasicOperations {
             delete connection.graphical[`head${id}`];
             connection.data.directions.pop();
         });
+        this.canvas.remove(connection.graphical.text);
         if(connection.data.directions.length === 0) {
             connection.node0.graph.disconnect(connection.node0.identifier, connection.node1.identifier);
         }
@@ -457,6 +468,44 @@ export class BasicOperations {
     }
 
     undoMoveNode(node: BasicGNode, fromX: number,fromY: number, toX: number,toY: number) {}
+
+    weightConnection(connection: BasicGConnection, weight: number) {
+        const previousInput = connection.data.weight;
+        connection.data.weight = weight;
+        if(!connection.graphical.text && !previousInput) {
+            const middleX = getCentre(connection.node0.graphical.circle as fabric.Circle)[0] + getCentre(connection.node1.graphical.circle as fabric.Circle)[0];
+            const middleY = getCentre(connection.node0.graphical.circle as fabric.Circle)[1] + getCentre(connection.node1.graphical.circle as fabric.Circle)[1];
+            connection.graphical.text = new fabric.Text(connection.data.weight.toString(), {
+                fontFamily: 'Calibri',
+                fontSize: 20,
+                fontStyle: 'italic',
+                textAlign: 'center',
+                left: middleX/2,
+                top: middleY/2,
+                hasControls: false,
+                hasRotatingPoint: false,
+                hasBorders: false,
+                selectable: false,
+            });
+        } else {
+            (connection.graphical.text as fabric.Text).set({text: weight.toString()});
+        }
+        this.canvas.add(connection.graphical.text);
+        this.canvas.renderAll();
+        this.undoOperations.push((()=>{
+            
+            if(previousInput){
+                connection.data.weight = previousInput;
+                (connection.graphical.text as fabric.Text).set({text: previousInput.toString()});
+            } else {
+                delete connection.data.weight;
+                this.canvas.remove(connection.graphical.text!);
+            }
+            this.canvas.renderAll();
+        }))
+
+
+    }
 
     undo(): void {
         if(this.undoOperations.empty()) return;

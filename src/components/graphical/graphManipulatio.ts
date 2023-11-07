@@ -383,6 +383,151 @@ export const findPath = (graph: GGraph, id1: string, id2: string, toSelect = tru
 
 }
 
+class PriorityQueue {
+    private elements: any[]
+    constructor() {
+      this.elements = [];
+    }
+  
+    enqueue(element: any, priority: number) {
+      this.elements.push({ element, priority });
+      this.elements.sort((a, b) => a.priority - b.priority);
+    }
+  
+    dequeue() {
+      console.log(this.elements);
+      return this.elements.shift().element;
+    }
+  
+    isEmpty() {
+      return this.elements.length === 0;
+    }
+}
+
+const reconstructPath = (previousNodes: any, startNode: any, endNode: any) => {
+    const path = [];
+    let currentNode = endNode;
+
+    while (currentNode !== startNode) {
+      path.unshift(currentNode);
+      currentNode = previousNodes[currentNode];
+    }
+
+    path.unshift(startNode);
+    return path;
+}
+
+export const findDijkstra = (graph: GGraph, id1: string, id2: string, toSelect = true) => {
+    const distances: {[key: string]: number} = {};
+    const previousNodes: {[key: string]: string} = {};
+    const visited: {[key: string]: boolean} = {};
+    const priorityQueue = new PriorityQueue();
+
+    // Initialize distances and priority queue
+    graph.getNodes().forEach(node => {
+      distances[node.identifier] = Infinity;
+      previousNodes[node.identifier] = node.identifier;
+      visited[node.identifier] = false;
+    });
+    distances[id1] = 0;
+    priorityQueue.enqueue(id1, 0);
+
+    while (!priorityQueue.isEmpty()) {
+      const currentNode = priorityQueue.dequeue().element;
+
+      if (currentNode === id2) {
+        // Reached the end node, reconstruct the path
+        const path = reconstructPath(previousNodes, id1, id2);
+        let [prevNode, ...rest] = path;
+        for(let i of rest) {
+            select(graph.nodes[i], false);
+            select(graph.getConnection(graph.nodes[prevNode].identifier, graph.nodes[i].identifier)!, false);
+            prevNode = i;
+        }
+        return { distance: distances[id2], path: path };
+      }
+
+      
+
+      if (!visited[currentNode]) {
+        const neighbors: any[] = graph.neighbours(currentNode).map((node)=> {
+            const connection = graph.getConnection(node.identifier, currentNode)!
+            if(connection.node0.identifier === currentNode) {
+                if(connection.data.directions.find(({zeroToOne})=>zeroToOne || zeroToOne === undefined)) {
+                    return [connection.data.weight || 1, connection.node1.identifier];
+                }
+            } else {
+                if(connection.data.directions.find(({zeroToOne})=>!zeroToOne || zeroToOne === undefined)) {
+                    return [connection.data.weight || 1, connection.node0.identifier];
+                }
+            }
+        }).filter((a)=>!!a);
+        neighbors.forEach(([weight, neighbor]) => {
+          const newDistance = distances[currentNode] + weight;
+
+          if (newDistance < distances[neighbor]) {
+            distances[neighbor] = newDistance;
+            previousNodes[neighbor] = currentNode;
+            priorityQueue.enqueue(neighbor, newDistance);
+          }
+        });
+
+        visited[currentNode] = true;
+      }
+    }
+
+    // No path found
+    return { distance: Infinity, path: [] };
+}
+
+export const primSpanningTree = (graph: GGraph, toSelect = true) => {
+    const visited: any = {};
+    const minimumSpanningTree: any[] = [];
+    const priorityQueue = new PriorityQueue();
+
+    // Start from the first node (you can start from any node)
+    const startNode = graph.getNodes()[0];
+    visited[startNode.identifier] = true;
+
+    graph.neighbours(startNode.identifier).forEach((node)=> {
+        const connection = graph.getConnection(node.identifier, startNode.identifier)!
+        
+        priorityQueue.enqueue({ 
+            node, 
+            weight: connection.data.weight, 
+            source: startNode 
+        }, connection.data.weight || 1);
+    });
+
+
+    while (!priorityQueue.isEmpty()) {
+      const { node, weight, source } = priorityQueue.dequeue();
+
+      if (!visited[node.identifier]) {
+        visited[node.identifier] = true;
+        minimumSpanningTree.push({ source, target: node, weight });
+
+        // Enqueue all edges connected to the current node
+        graph.neighbours(node.identifier).forEach((neighbor)=> {
+            const connection = graph.getConnection(neighbor.identifier, node.identifier)!
+            priorityQueue.enqueue({ 
+                node: neighbor, 
+                weight: connection.data.weight, 
+                source: node 
+            }, connection.data.weight || 1);
+        });
+      }
+    }
+    console.log(minimumSpanningTree);
+    minimumSpanningTree.forEach(({target, source})=>{
+        select(target, false);
+        select(source, false);
+        select(graph.getConnection(target.identifier, source.identifier)!, false);
+    });
+
+    return minimumSpanningTree;
+  }
+
 export const findMetric = (graph: GGraph, id1: string, id2: string) => {
     const d = findPath(graph, id1, id2, false);
     if(!d) return;
@@ -1206,7 +1351,18 @@ function initializeEvents(_canvas: any) {
                         }
                     });
                     return false;
-                },{hide:multipleSelection().every((tgt)=>!(tgt as GConnection).node0)}]
+                },{hide:multipleSelection().every((tgt)=>!(tgt as GConnection).node0)}],
+                Weight: [({input})=>{
+                    multipleSelection().forEach((target)=>{
+                        if((target as GConnection).node0) {
+                            operations.weightConnection(target as BasicGConnection, input);
+                        }
+                    });
+                    return false;
+                },{
+                    addInputField: true,
+                    hide: multipleSelection().every((tgt)=>!(tgt as GConnection).node0)
+                }]
             });
         } else {
             customContextMenu(event, {
