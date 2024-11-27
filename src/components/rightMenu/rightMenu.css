@@ -1,0 +1,9 @@
+.responsive-menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+}
+
+.menu-item {
+    margin: 3px; /* Adjust as needed */
+}
