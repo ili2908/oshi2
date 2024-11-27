@@ -12,7 +12,6 @@ const initialize = (setArrowsEnabled: any, setAutoLabeling: any, setDrawMode: an
     _setAutoLabeling = setAutoLabeling;
     _setDrawMode = setDrawMode;
 }
-
 const setArrowsEnabled = (__arrowsEnabled: boolean)=>{ 
     _arrowsEnabled = __arrowsEnabled;
     _setArrowsEnabled(_arrowsEnabled);
@@ -31,7 +30,6 @@ const setDrawMode = (drawMode: boolean)=>{
 const drawMode = () => {
     return _drawMode;
 }
-
 const arrowsEnabled = ()=> {
     return _arrowsEnabled;
 }

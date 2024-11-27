@@ -1,0 +1,19 @@
+.add-plugin-form {
+    display: flex;
+    float: right; /* This will move the form to the right */
+    margin-left: auto;
+}
+.add-plugin-form input {
+    padding: 5px;
+    margin-right: 10px;
+}
+
+.add-plugin-form button {
+    height: 100%;
+    width: 100%;
+    background:#49524c;
+    border: none;
+    color: #93a399;
+    padding: 5px 10px;
+    cursor: pointer;
+}
